@@ -51,7 +51,7 @@ export default function MembersPage() {
 
   useEffect(() => {
     fetchMembers()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchMembers = async () => {
     try {

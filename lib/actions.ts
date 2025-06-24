@@ -1,5 +1,7 @@
 "use server"
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
@@ -27,7 +29,7 @@ export async function signIn(prevState: ActionState | null, formData: FormData):
   }
 
   const cookieStore = await cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = createServerActionClient({ cookies: () => cookieStore as any })
 
   try {
     const { error } = await supabase.auth.signInWithPassword({
@@ -70,7 +72,7 @@ export async function signUp(prevState: ActionState | null, formData: FormData):
   }
 
   const cookieStore = await cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = createServerActionClient({ cookies: () => cookieStore as any })
 
   try {
     const { data, error } = await supabase.auth.signUp({
@@ -111,7 +113,7 @@ export async function signUp(prevState: ActionState | null, formData: FormData):
 
 export async function signOut() {
   const cookieStore = await cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = createServerActionClient({ cookies: () => cookieStore as any })
 
   await supabase.auth.signOut()
   redirect("/auth/login")
@@ -124,7 +126,7 @@ export async function createDevUser() {
   }
 
   const cookieStore = await cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = createServerActionClient({ cookies: () => cookieStore as any })
 
   try {
     // First try to sign in
@@ -171,7 +173,7 @@ export async function createDevUser() {
 // Function to update user profile
 export async function updateUserProfile(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
   const cookieStore = await cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = createServerActionClient({ cookies: () => cookieStore as any })
 
   try {
     // Get current user
@@ -246,7 +248,7 @@ export async function updateUserProfile(prevState: ActionState | null, formData:
 // Function to create a new forum post
 export async function createForumPost(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
   const cookieStore = await cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = createServerActionClient({ cookies: () => cookieStore as any })
 
   try {
     // Get current user
@@ -306,7 +308,7 @@ export async function createForumPost(prevState: ActionState | null, formData: F
 // Function to increment post views
 export async function incrementPostViews(postId: string) {
   const cookieStore = await cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = createServerActionClient({ cookies: () => cookieStore as any })
 
   try {
     const { error } = await supabase.rpc("increment_post_views", { post_id: postId })
@@ -322,7 +324,7 @@ export async function incrementPostViews(postId: string) {
 // Function to toggle post like
 export async function togglePostLike(postId: string) {
   const cookieStore = await cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = createServerActionClient({ cookies: () => cookieStore as any })
 
   try {
     // Get current user
@@ -371,7 +373,7 @@ export async function togglePostLike(postId: string) {
 // Function to add a comment to a post
 export async function addPostComment(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
   const cookieStore = await cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = createServerActionClient({ cookies: () => cookieStore as any })
 
   try {
     // Get current user
@@ -423,7 +425,7 @@ export async function addPostComment(prevState: ActionState | null, formData: Fo
 // Function to add a reply to a comment
 export async function addCommentReply(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
   const cookieStore = await cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = createServerActionClient({ cookies: () => cookieStore as any })
 
   try {
     // Get current user
@@ -475,7 +477,7 @@ export async function addCommentReply(prevState: ActionState | null, formData: F
 // Function to delete a forum post (only by the author)
 export async function deleteForumPost(postId: string) {
   const cookieStore = await cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = createServerActionClient({ cookies: () => cookieStore as any })
 
   try {
     // Get current user
@@ -550,7 +552,7 @@ export async function deleteForumPost(postId: string) {
 // Function to delete a comment or reply (only by the author)
 export async function deleteCommentReply(commentId: string) {
   const cookieStore = await cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = createServerActionClient({ cookies: () => cookieStore as any })
 
   try {
     // Get current user
@@ -603,7 +605,7 @@ export async function deleteCommentReply(commentId: string) {
 // Function to ban a user (admin only)
 export async function banUser(userId: string) {
   const cookieStore = await cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = createServerActionClient({ cookies: () => cookieStore as any })
 
   try {
     // Get current user

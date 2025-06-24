@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { cache } from "react"
@@ -23,5 +25,5 @@ export const createClient = cache(async () => {
     }
   }
 
-  return createServerComponentClient({ cookies: () => cookieStore })
+  return createServerComponentClient({ cookies: () => cookieStore as any })
 })
