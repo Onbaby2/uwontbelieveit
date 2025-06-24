@@ -26,7 +26,7 @@ export async function signIn(prevState: ActionState | null, formData: FormData):
     return { error: "Email and password are required" }
   }
 
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const supabase = createServerActionClient({ cookies: () => cookieStore })
 
   try {
@@ -69,7 +69,7 @@ export async function signUp(prevState: ActionState | null, formData: FormData):
     return { error: "Email and password are required" }
   }
 
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const supabase = createServerActionClient({ cookies: () => cookieStore })
 
   try {
@@ -110,7 +110,7 @@ export async function signUp(prevState: ActionState | null, formData: FormData):
 }
 
 export async function signOut() {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const supabase = createServerActionClient({ cookies: () => cookieStore })
 
   await supabase.auth.signOut()
@@ -123,7 +123,7 @@ export async function createDevUser() {
     return { error: "This function is only available in development" }
   }
 
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const supabase = createServerActionClient({ cookies: () => cookieStore })
 
   try {
@@ -170,7 +170,7 @@ export async function createDevUser() {
 
 // Function to update user profile
 export async function updateUserProfile(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const supabase = createServerActionClient({ cookies: () => cookieStore })
 
   try {
@@ -245,7 +245,7 @@ export async function updateUserProfile(prevState: ActionState | null, formData:
 
 // Function to create a new forum post
 export async function createForumPost(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const supabase = createServerActionClient({ cookies: () => cookieStore })
 
   try {
@@ -305,7 +305,7 @@ export async function createForumPost(prevState: ActionState | null, formData: F
 
 // Function to increment post views
 export async function incrementPostViews(postId: string) {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const supabase = createServerActionClient({ cookies: () => cookieStore })
 
   try {
@@ -321,7 +321,7 @@ export async function incrementPostViews(postId: string) {
 
 // Function to toggle post like
 export async function togglePostLike(postId: string) {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const supabase = createServerActionClient({ cookies: () => cookieStore })
 
   try {
@@ -370,7 +370,7 @@ export async function togglePostLike(postId: string) {
 
 // Function to add a comment to a post
 export async function addPostComment(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const supabase = createServerActionClient({ cookies: () => cookieStore })
 
   try {
@@ -422,7 +422,7 @@ export async function addPostComment(prevState: ActionState | null, formData: Fo
 
 // Function to add a reply to a comment
 export async function addCommentReply(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const supabase = createServerActionClient({ cookies: () => cookieStore })
 
   try {
@@ -474,7 +474,7 @@ export async function addCommentReply(prevState: ActionState | null, formData: F
 
 // Function to delete a forum post (only by the author)
 export async function deleteForumPost(postId: string) {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const supabase = createServerActionClient({ cookies: () => cookieStore })
 
   try {
@@ -549,7 +549,7 @@ export async function deleteForumPost(postId: string) {
 
 // Function to delete a comment or reply (only by the author)
 export async function deleteCommentReply(commentId: string) {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const supabase = createServerActionClient({ cookies: () => cookieStore })
 
   try {
@@ -602,7 +602,7 @@ export async function deleteCommentReply(commentId: string) {
 
 // Function to ban a user (admin only)
 export async function banUser(userId: string) {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const supabase = createServerActionClient({ cookies: () => cookieStore })
 
   try {

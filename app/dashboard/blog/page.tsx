@@ -10,7 +10,7 @@ import { Search, Clock, Eye, Heart, MessageCircle, Plus, ArrowRight } from "luci
 import Image from "next/image"
 
 export default async function BlogPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()

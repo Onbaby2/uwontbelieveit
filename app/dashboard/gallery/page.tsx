@@ -9,7 +9,7 @@ import { Upload, Search, Filter, Heart, Download, Share, Calendar, User } from "
 import Image from "next/image"
 
 export default async function GalleryPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
