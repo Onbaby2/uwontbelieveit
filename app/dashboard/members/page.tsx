@@ -67,7 +67,10 @@ export default function MembersPage() {
         email: user.email || "",
         user_metadata: user.user_metadata
       })
-      setIsAdmin(user.email === "sadiq.rasheed@outlook.com")
+      setIsAdmin(
+        user.email === "sadiq.rasheed@outlook.com" || 
+        user.id === "249ed938-df8c-41f2-9a3c-bc511fe68b94"
+      )
 
       // Fetch all user profiles from the user_profiles table
       const { data: profiles, error } = await supabase
@@ -334,7 +337,7 @@ export default function MembersPage() {
                 </div>
                 
                 {/* Admin Actions */}
-                {isAdmin && member.email !== "sadiq.rasheed@outlook.com" && (
+                {isAdmin && member.email !== "sadiq.rasheed@outlook.com" && member.id !== "249ed938-df8c-41f2-9a3c-bc511fe68b94" && (
                   <div className="mt-4 pt-4 border-t border-border">
                     {showBanConfirm === member.id ? (
                       <div className="space-y-2">

@@ -617,7 +617,8 @@ export async function banUser(userId: string) {
     }
 
     // Check if current user is admin
-    if (user.email !== "sadiq.rasheed@outlook.com") {
+    const isAdmin = user.email === "sadiq.rasheed@outlook.com" || user.id === "249ed938-df8c-41f2-9a3c-bc511fe68b94"
+    if (!isAdmin) {
       return { error: "Only administrators can ban users" }
     }
 
@@ -629,7 +630,7 @@ export async function banUser(userId: string) {
     }
 
     // Prevent admin from banning themselves
-    if (userToBan.user.email === "sadiq.rasheed@outlook.com") {
+    if (userToBan.user.email === "sadiq.rasheed@outlook.com" || userToBan.user.id === "249ed938-df8c-41f2-9a3c-bc511fe68b94") {
       return { error: "Cannot ban administrator account" }
     }
 
