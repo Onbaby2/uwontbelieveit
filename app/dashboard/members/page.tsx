@@ -275,11 +275,15 @@ export default function MembersPage() {
                     <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-background rounded-full"></div>
                   </div>
 
-                  {/* Name */}
-                  <div>
-                    <h3 className="text-lg font-semibold text-card-foreground truncate">
-                      {member.full_name || `${member.first_name || ''} ${member.last_name || ''}`.trim() || member.email.split('@')[0]}
-                    </h3>
+                                     {/* Name */}
+                   <div>
+                     <h3 className="text-lg font-semibold text-card-foreground truncate">
+                       {member.full_name || 
+                        (member.first_name && member.last_name ? `${member.first_name} ${member.last_name}` : '') ||
+                        member.first_name || 
+                        member.last_name || 
+                        member.email.split('@')[0]}
+                     </h3>
                     {member.bio && (
                       <p className="text-sm text-muted-foreground mt-1 line-clamp-2" style={{display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden'}}>
                         {member.bio}
@@ -406,40 +410,44 @@ export default function MembersPage() {
           </div>
         )}
 
-        {/* Stats Footer */}
-        {members.length > 0 && (
-          <div className="border-t border-border pt-6">
-            <div className="flex flex-wrap justify-center gap-6 text-center">
-              <div>
-                <div className="text-2xl font-bold text-foreground">{members.length}</div>
-                <div className="text-sm text-muted-foreground">Total Members</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-foreground">
-                  {members.filter(m => m.phone_number).length}
-                </div>
-                <div className="text-sm text-muted-foreground">With Phone Numbers</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-foreground">
-                  {members.filter(m => m.location).length}
-                </div>
-                <div className="text-sm text-muted-foreground">With Locations</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-foreground">
-                  {members.filter(m => {
-                    const joinDate = new Date(m.created_at)
-                    const weekAgo = new Date()
-                    weekAgo.setDate(weekAgo.getDate() - 7)
-                    return joinDate > weekAgo
-                  }).length}
-                </div>
-                <div className="text-sm text-muted-foreground">Joined This Week</div>
-              </div>
-            </div>
-          </div>
-        )}
+                 {/* Stats Footer */}
+         {members.length > 0 && (
+           <div className="border-t border-border pt-6">
+             <div className="flex flex-wrap justify-center gap-6 text-center">
+               <div>
+                 <div className="text-2xl font-bold text-foreground">{members.length}</div>
+                 <div className="text-sm text-muted-foreground">Total Members</div>
+               </div>
+               {members.filter(m => m.phone_number).length > 0 && (
+                 <div>
+                   <div className="text-2xl font-bold text-foreground">
+                     {members.filter(m => m.phone_number).length}
+                   </div>
+                   <div className="text-sm text-muted-foreground">With Phone Numbers</div>
+                 </div>
+               )}
+               {members.filter(m => m.location).length > 0 && (
+                 <div>
+                   <div className="text-2xl font-bold text-foreground">
+                     {members.filter(m => m.location).length}
+                   </div>
+                   <div className="text-sm text-muted-foreground">With Locations</div>
+                 </div>
+               )}
+               <div>
+                 <div className="text-2xl font-bold text-foreground">
+                   {members.filter(m => {
+                     const joinDate = new Date(m.created_at)
+                     const weekAgo = new Date()
+                     weekAgo.setDate(weekAgo.getDate() - 7)
+                     return joinDate > weekAgo
+                   }).length}
+                 </div>
+                 <div className="text-sm text-muted-foreground">Joined This Week</div>
+               </div>
+             </div>
+           </div>
+         )}
 
         {/* Toast Notifications */}
         {toasts.map((toast) => (
