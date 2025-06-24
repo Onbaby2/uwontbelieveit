@@ -8,20 +8,23 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Search, Filter, UserPlus, Users, Ban, Phone, Mail, Calendar } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Search, Filter, UserPlus, Users, Ban, Phone, Mail, Calendar, MapPin, User } from "lucide-react"
 import { banUser } from "@/lib/actions"
 import { Loading } from "@/components/ui/loading"
 import { useToast } from "@/components/ui/toast"
-import { getUserAvatarUrl, getUserInitials } from "@/lib/utils"
 
 interface Member {
   id: string
-  fullName: string
   email: string
-  phoneNumber: string
-  avatar: string
-  initials: string
-  createdAt: string
+  first_name: string
+  last_name: string
+  full_name: string
+  phone_number: string
+  avatar_url: string
+  bio: string
+  location: string
+  created_at: string
 }
 
 export default function MembersPage() {
@@ -66,46 +69,31 @@ export default function MembersPage() {
       })
       setIsAdmin(user.email === "sadiq.rasheed@outlook.com")
 
-      // Fetch all users from auth.users to get avatar URLs
-      const { data: users, error } = await supabase.auth.admin.listUsers()
+      // Fetch all user profiles from the user_profiles table
+      const { data: profiles, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .order('created_at', { ascending: false })
 
       if (error) {
-        console.error("Error fetching users:", error)
+        console.error("Error fetching user profiles:", error)
+        toast({
+          title: "Error",
+          description: "Failed to load members. Please try again.",
+          variant: "destructive",
+        })
         return
       }
 
-      // Transform users into member format
-      const membersData = users?.map((userData: {
-        id: string
-        email?: string
-        user_metadata?: {
-          firstName?: string
-          lastName?: string
-          phoneNumber?: string
-        }
-        created_at: string
-      }) => {
-        const firstName = userData.user_metadata?.firstName || ""
-        const lastName = userData.user_metadata?.lastName || ""
-        const fullName = `${firstName} ${lastName}`.trim() || userData.email?.split("@")[0] || "Unknown User"
-        const phoneNumber = userData.user_metadata?.phoneNumber || "No phone number"
-        const email = userData.email || "No email"
-
-        return {
-          id: userData.id,
-          fullName,
-          email,
-          phoneNumber,
-          avatar: getUserAvatarUrl(userData),
-          initials: getUserInitials(userData),
-          createdAt: userData.created_at,
-        }
-      }) || []
-
-      setMembers(membersData)
-      setFilteredMembers(membersData)
+      setMembers(profiles || [])
+      setFilteredMembers(profiles || [])
     } catch (error) {
       console.error("Error fetching members:", error)
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while loading members.",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }
@@ -114,9 +102,12 @@ export default function MembersPage() {
   // Filter members based on search term
   useEffect(() => {
     const filtered = members.filter((member) =>
-      member.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase())
+      member.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.phone_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.location?.toLowerCase().includes(searchTerm.toLowerCase())
     )
     setFilteredMembers(filtered)
   }, [searchTerm, members])
@@ -165,6 +156,48 @@ export default function MembersPage() {
     }
   }
 
+  const getInitials = (member: Member) => {
+    if (member.first_name && member.last_name) {
+      return `${member.first_name[0]}${member.last_name[0]}`.toUpperCase()
+    }
+    if (member.full_name) {
+      const parts = member.full_name.split(' ')
+      if (parts.length >= 2) {
+        return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+      }
+      return parts[0][0].toUpperCase()
+    }
+    return member.email[0].toUpperCase()
+  }
+
+  const formatJoinDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffTime = Math.abs(now.getTime() - date.getTime())
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    
+    if (diffDays === 1) return "Joined today"
+    if (diffDays <= 7) return `Joined ${diffDays} days ago`
+    if (diffDays <= 30) return `Joined ${Math.ceil(diffDays / 7)} weeks ago`
+    return `Joined ${date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`
+  }
+
+  const formatPhoneNumber = (phone: string) => {
+    // Remove all non-numeric characters
+    const cleaned = phone.replace(/\D/g, '')
+    
+    // Format US phone numbers
+    if (cleaned.length === 10) {
+      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`
+    }
+    if (cleaned.length === 11 && cleaned[0] === '1') {
+      return `+1 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`
+    }
+    
+    // Return original if can't format
+    return phone
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -185,23 +218,31 @@ export default function MembersPage() {
     }}>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Members</h1>
-            <p className="text-muted-foreground">Manage community members</p>
+            <h1 className="text-3xl font-bold text-foreground">Community Members</h1>
+            <p className="text-muted-foreground">
+              {members.length} {members.length === 1 ? 'member' : 'members'} in the Mahmood Ihsan Foundation community
+            </p>
           </div>
-          <Button>
-            <UserPlus className="mr-2 h-4 w-4" />
-            Invite Member
-          </Button>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="px-3 py-1">
+              <Users className="mr-1 h-3 w-3" />
+              {members.length} Total
+            </Badge>
+            <Button>
+              <UserPlus className="mr-2 h-4 w-4" />
+              Invite Member
+            </Button>
+          </div>
         </div>
 
         {/* Search and Filter */}
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
-              placeholder="Search by name, email, or phone number..."
+              placeholder="Search by name, email, phone, or location..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -214,44 +255,78 @@ export default function MembersPage() {
         </div>
 
         {/* Members Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredMembers.map((member) => (
-            <Card key={member.id} className="bg-card border-border hover:border-primary/30 transition-colors">
+            <Card key={member.id} className="bg-card border-border hover:border-primary/30 transition-all duration-300 hover:shadow-lg group">
               <CardContent className="p-6">
-                <div className="flex items-start space-x-4">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={member.avatar} alt={member.fullName} />
-                    <AvatarFallback className="bg-primary text-primary-foreground">
-                      {member.initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-card-foreground truncate mb-2">
-                      {member.fullName}
+                <div className="text-center space-y-4">
+                  {/* Avatar */}
+                  <div className="relative mx-auto">
+                    <Avatar className="h-16 w-16 mx-auto ring-2 ring-background shadow-lg">
+                      <AvatarImage 
+                        src={member.avatar_url || ''} 
+                        alt={member.full_name || member.email}
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-lg font-semibold">
+                        {getInitials(member)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-background rounded-full"></div>
+                  </div>
+
+                  {/* Name */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-card-foreground truncate">
+                      {member.full_name || `${member.first_name || ''} ${member.last_name || ''}`.trim() || member.email.split('@')[0]}
                     </h3>
+                    {member.bio && (
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2" style={{display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden'}}>
+                        {member.bio}
+                      </p>
+                    )}
+                  </div>
+                  
+                  {/* Contact Information */}
+                  <div className="space-y-2 text-left">
+                    <div className="flex items-center space-x-2">
+                      <Mail className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                      <p className="text-sm text-muted-foreground truncate" title={member.email}>
+                        {member.email}
+                      </p>
+                    </div>
                     
-                    {/* Contact Information */}
-                    <div className="space-y-2">
+                                         {member.phone_number && (
+                       <div className="flex items-center space-x-2">
+                         <Phone className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                         <p className="text-sm text-muted-foreground">
+                           {formatPhoneNumber(member.phone_number)}
+                         </p>
+                       </div>
+                     )}
+                    
+                    {member.location && (
                       <div className="flex items-center space-x-2">
-                        <Mail className="h-3 w-3 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground truncate">{member.email}</p>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        <Phone className="h-3 w-3 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">
-                          {member.phoneNumber !== "No phone number" ? member.phoneNumber : "No phone number"}
+                        <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                        <p className="text-sm text-muted-foreground truncate" title={member.location}>
+                          {member.location}
                         </p>
                       </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        <Calendar className="h-3 w-3 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">
-                          Joined {new Date(member.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
+                    )}
+                    
+                    <div className="flex items-center space-x-2">
+                      <Calendar className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                      <p className="text-sm text-muted-foreground">
+                        {formatJoinDate(member.created_at)}
+                      </p>
                     </div>
                   </div>
+
+                  {/* View Profile Button */}
+                  <Button variant="outline" className="w-full" size="sm">
+                    <User className="mr-2 h-3 w-3" />
+                    View Profile
+                  </Button>
                 </div>
                 
                 {/* Admin Actions */}
@@ -259,15 +334,16 @@ export default function MembersPage() {
                   <div className="mt-4 pt-4 border-t border-border">
                     {showBanConfirm === member.id ? (
                       <div className="space-y-2">
-                        <div className="text-sm text-destructive font-medium">
+                        <div className="text-sm text-destructive font-medium text-center">
                           Are you sure? This will permanently delete the user and all their content.
                         </div>
                         <div className="flex space-x-2">
                           <Button 
                             variant="destructive" 
                             size="sm"
-                            onClick={() => handleBanUser(member.id, member.fullName)}
+                            onClick={() => handleBanUser(member.id, member.full_name || member.email)}
                             disabled={banningUserId === member.id}
+                            className="flex-1"
                           >
                             {banningUserId === member.id ? (
                               <Loading size="sm" />
@@ -279,6 +355,7 @@ export default function MembersPage() {
                             variant="outline" 
                             size="sm"
                             onClick={() => setShowBanConfirm(null)}
+                            className="flex-1"
                           >
                             Cancel
                           </Button>
@@ -303,13 +380,64 @@ export default function MembersPage() {
         </div>
 
         {/* Empty State */}
-        {filteredMembers.length === 0 && (
+        {filteredMembers.length === 0 && !loading && (
           <div className="text-center py-12">
-            <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">No members found</h3>
-            <p className="text-muted-foreground">
-              {searchTerm ? "Try adjusting your search terms." : "No members have joined yet."}
+            <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
+              <Users className="h-12 w-12 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              {searchTerm ? "No members found" : "No members yet"}
+            </h3>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              {searchTerm 
+                ? "Try adjusting your search terms or check for typos." 
+                : "Be the first to join the Mahmood Ihsan Foundation community!"
+              }
             </p>
+            {searchTerm && (
+              <Button 
+                variant="outline" 
+                onClick={() => setSearchTerm("")}
+                className="mt-4"
+              >
+                Clear search
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* Stats Footer */}
+        {members.length > 0 && (
+          <div className="border-t border-border pt-6">
+            <div className="flex flex-wrap justify-center gap-6 text-center">
+              <div>
+                <div className="text-2xl font-bold text-foreground">{members.length}</div>
+                <div className="text-sm text-muted-foreground">Total Members</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-foreground">
+                  {members.filter(m => m.phone_number).length}
+                </div>
+                <div className="text-sm text-muted-foreground">With Phone Numbers</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-foreground">
+                  {members.filter(m => m.location).length}
+                </div>
+                <div className="text-sm text-muted-foreground">With Locations</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-foreground">
+                  {members.filter(m => {
+                    const joinDate = new Date(m.created_at)
+                    const weekAgo = new Date()
+                    weekAgo.setDate(weekAgo.getDate() - 7)
+                    return joinDate > weekAgo
+                  }).length}
+                </div>
+                <div className="text-sm text-muted-foreground">Joined This Week</div>
+              </div>
+            </div>
           </div>
         )}
 
